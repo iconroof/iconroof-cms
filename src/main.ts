@@ -1,10 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { json, urlencoded } from 'express';
+import { json, urlencoded, Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Redirect /api/uploads/* to /uploads/* (fix for old incorrect URLs)
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/api/uploads/')) {
+      const newPath = req.path.replace('/api/uploads/', '/uploads/');
+      return res.redirect(301, newPath);
+    }
+    next();
+  });
 
   // Set global API prefix
   app.setGlobalPrefix('api');
